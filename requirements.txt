@@ -1,0 +1,38 @@
+# 落小鱼 — 依赖清单
+#
+# 安装：
+#   python -m venv .venv
+#   .venv\Scripts\python.exe -m pip install -r requirements.txt
+#   .venv\Scripts\python.exe -m pip install --no-deps -e ./vendor/wxauto   # 仅 3.9 旧适配器需要（可选）
+
+# --- Web 后端 / 控制台 ---
+fastapi==0.161.1
+uvicorn[standard]==0.54.0
+pydantic==2.14.1
+httpx==0.28.1
+python-multipart==0.0.32
+
+# --- 桌面 / 托盘 / 独立控制台窗口 ---
+pillow==13.0.0
+pystray==0.19.5
+pywebview==6.2.1
+pythonnet==3.2.1
+
+# --- 微信 4.x 自动化（读本地数据库 + UIA 发消息）---
+wechatauto-replica==1.2.7.0
+uiautomation==2.0.29
+comtypes==1.4.17
+pywin32==312
+psutil==7.2.2
+pyperclip==1.11.0
+tenacity==9.2.1
+colorama==0.4.6
+zstandard==0.25.0
+cryptography==50.0.2
+numpy==2.5.4
+
+# --- 图片转码：微信 4.x 图片是 wxgf/HEVC 容器，识图要靠 ffmpeg ---
+imageio-ffmpeg==0.6.0
+
+# --- 打包 ---
+pyinstaller==6.22.3

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>落小鱼 · 控制台</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= 侧边栏 ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <img src="/logo.png" alt="落小鱼" width="30" height="30">
+      </div>
+      <div class="brand-text">
+        <strong>落小鱼</strong>
+        <span>微信自动回复控制台</span>
+      </div>
+    </div>
+
+    <div class="brand-line">
+      <span class="brand-status" id="brand-status"></span>
+      <span id="brand-status-text">正在连接…</span>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav-item" type="button" data-view="overview">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"></rect><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"></rect><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"></rect><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"></rect></svg>
+        <span>概览</span>
+      </button>
+      <button class="nav-item" type="button" data-view="private">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>私聊设置</span>
+      </button>
+      <button class="nav-item" type="button" data-view="group">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9.5" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>群聊设置</span>
+      </button>
+      <button class="nav-item" type="button" data-view="rules">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="9" cy="6" r="2.1"></circle><circle cx="15.5" cy="12" r="2.1"></circle><circle cx="8" cy="18" r="2.1"></circle></svg>
+        <span>监听规则</span>
+      </button>
+      <button class="nav-item" type="button" data-view="persona">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"></circle><path d="M4.5 20.5c1.2-3.4 4-5.2 7.5-5.2s6.3 1.8 7.5 5.2"></path><path d="M12 2.2v1.6"></path></svg>
+        <span>人设设置</span>
+      </button>
+      <button class="nav-item" type="button" data-view="ai">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"></path></svg>
+        <span>AI 接口</span>
+      </button>
+      <button class="nav-item" type="button" data-view="rhythm">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3.5l3-8 4.5 16 3-8H21"></path></svg>
+        <span>收发节奏</span>
+      </button>
+      <button class="nav-item" type="button" data-view="logs">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
+        <span>消息日志</span>
+      </button>
+      <button class="nav-item" type="button" data-view="system">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line><circle cx="9" cy="8" r="2.2"></circle><circle cx="15" cy="16" r="2.2"></circle></svg>
+        <span>系统设置</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="sf-row"><span>版本</span><b id="side-version">—</b></div>
+      <div class="sf-row"><span>接入</span><b id="side-adapter">—</b></div>
+      <button class="sf-quit" type="button" id="btn-quit-app" title="关闭 落小鱼（含后台服务）">退出程序</button>
+      <style>
+        .sf-quit { width: 100%; margin-top: 10px; padding: 8px 10px; border-radius: 9px;
+          border: 1px solid #3a2740; background: #251a22; color: #ff8fa3;
+          font: inherit; font-size: 12.5px; cursor: pointer; transition: .15s; }
+        .sf-quit:hover { background: #33202b; border-color: #5a3140; color: #ffb3c1; }
+      </style>
+    </div>
+  </aside>
+
+  <!-- ================= 主区域 ================= -->
+  <div class="main">
+
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1 id="page-title">概览</h1>
+        <span class="topbar-sub" id="page-sub">一眼看清运行状态</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="dirty-flag" id="dirty-flag" hidden>● 有未保存的修改</span>
+        <span class="pill" id="run-pill"><i class="dot"></i><span id="run-pill-text">连接中…</span></span>
+        <button class="btn ghost" type="button" id="btn-start">启动</button>
+        <button class="btn ghost" type="button" id="btn-stop">停止</button>
+        <button class="btn primary" type="button" id="btn-save-top">保存并生效</button>
+      </div>
+    </header>
+
+    <div class="offline-bar" id="offline-bar" hidden>
+      <span>后端没连上，现在只是界面预览，所有改动都不会保存。</span>
+      <button class="btn sm primary" type="button" id="offline-retry">重试连接</button>
+    </div>
+
+    <div class="content" id="content">
+
+      <!-- ============ 1. 概览 ============ -->
+      <section class="view" id="view-overview" hidden>
+        <div class="startup-card" id="startup-card" hidden>
+          <div class="startup-head">
+            <b>正在启动</b>
+            <span class="muted tiny" id="startup-percent">0%</span>
+          </div>
+          <div class="startup-track"><div class="startup-fill" id="startup-fill"></div></div>
+          <p class="startup-step" id="startup-step">准备中…</p>
+          <p class="muted tiny" id="startup-detail"></p>
+        </div>
+        <div class="alert error" id="child-banner" hidden>
+          <div class="alert-body">
+            <b>机器人没有在运行</b>
+            <p id="child-banner-text"></p>
+          </div>
+          <div class="row">
+            <button class="btn sm" type="button" data-goto="system">去修复登录</button>
+            <button class="btn sm ghost" type="button" id="child-banner-retry">重试建立分身</button>
+          </div>
+        </div>
+
+        <div class="hero">
+          <img class="hero-avatar" src="/logo.png" alt="落小鱼">
+          <div class="hero-body">
+            <h2 class="hero-title">落小鱼</h2>
+            <p class="hero-tag">住在你电脑里的微信分身</p>
+            <p class="hero-desc">在独立桌面里替你回消息：你的鼠标、窗口、输入法都不受影响，微信版本随便升级。</p>
+            <div class="hero-steps">
+              <span class="hero-step">1 · AI 接口填 Key</span>
+              <span class="hero-step">2 · 私聊 / 群聊选监听对象</span>
+              <span class="hero-step">3 · 保存并生效</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="card stat">
+            <div class="stat-label">今日消息</div>
+            <div class="stat-value" id="stat-today">—</div>
+            <div class="stat-sub" id="stat-today-sub">最近 24 小时</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">已回复</div>
+            <div class="stat-value" id="stat-replied">—</div>
+            <div class="stat-sub" id="stat-replied-sub">发出消息总数</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">活跃会话</div>
+            <div class="stat-value" id="stat-chats">—</div>
+            <div class="stat-sub">24 小时内有消息</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">运行时长</div>
+            <div class="stat-value" id="stat-uptime">—</div>
+            <div class="stat-sub" id="stat-uptime-sub">本次启动至今</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>连接状态</h3><p class="muted tiny">微信适配器的实时情况</p></div>
+              <span class="badge" id="conn-badge">—</span>
+            </div>
+            <div class="kv" id="conn-body"></div>
+            <p class="err-line" id="conn-error" hidden></p>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h3>AI 接口</h3><p class="muted tiny">模型服务配置概况</p></div>
+              <button class="btn sm ghost" type="button" data-goto="ai">去配置</button>
+            </div>
+            <div class="kv" id="ai-card-body"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-side">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>实时动态</h3><p class="muted tiny">最近 40 条运行事件，新的在最上面</p></div>
+              <span class="muted tiny" id="notif-count"></span>
+            </div>
+            <ul class="feed" id="feed"></ul>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><h3>快捷操作</h3><p class="muted tiny">常用入口</p></div></div>
+            <div class="quick">
+              <button class="btn" type="button" id="qa-start">启动机器人</button>
+              <button class="btn ghost" type="button" id="qa-stop">停止机器人</button>
+              <button class="btn ghost" type="button" data-goto="logs">打开消息日志</button>
+              <button class="btn ghost" type="button" data-goto="system">发送测试消息</button>
+              <button class="btn ghost" type="button" id="qa-refresh">立即刷新状态</button>
+            </div>
+            <div class="kv compact">
+              <div class="kv-row"><span>接入模式</span><b id="qa-adapter">—</b></div>
+              <div class="kv-row"><span>回复队列</span><b id="qa-queue">—</b></div>
+              <div class="kv-row"><span>监听会话</span><b id="qa-listen">—</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 2. 私聊设置 ============ -->
+      <section class="view" id="view-private" hidden>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>私聊自动回复</h3><p class="muted tiny">关闭后所有私聊都不会自动回复</p></div>
+              <label class="switch"><input type="checkbox" data-bind="bot.private_enabled"><span class="track"></span></label>
+            </div>
+            <div class="field">
+              <span class="field-label">回复范围</span>
+              <div class="seg" data-bind-radio="private.mode">
+                <label class="seg-opt"><input type="radio" name="private.mode" value="all"><span>全部私聊</span></label>
+                <label class="seg-opt"><input type="radio" name="private.mode" value="include"><span>仅名单内</span></label>
+                <label class="seg-opt"><input type="radio" name="private.mode" value="exclude"><span>名单外全回</span></label>
+              </div>
+              <p class="hint" id="private-mode-hint"></p>
+            </div>
+          </div>
+
+          <div class="card" id="private-list-card">
+            <div class="card-head">
+              <div><h3>会话名单</h3><p class="muted tiny">按备注名/昵称精确匹配，支持 * 通配</p></div>
+              <button class="btn sm ghost" type="button" data-sessions="private.chats">从微信拉取会话</button>
+            </div>
+            <div class="tags" data-tags="private.chats" data-placeholder="输入好友名后按回车添加"></div>
+            <p class="hint" id="private-list-hint">回车添加标签，点 × 删除。</p>
+          </div>
+        </div>
+
+        <div class="card" id="private-keyword-card">
+          <div class="card-head">
+            <div><h3>关键词触发</h3><p class="muted tiny">打开后，私聊必须包含至少一个关键词才会回复</p></div>
+            <label class="switch"><input type="checkbox" data-bind="private.require_keyword"><span class="track"></span></label>
+          </div>
+          <div class="tags" data-tags="private.keywords" data-placeholder="输入关键词后按回车，例如：在吗"></div>
+          <p class="hint" id="private-keyword-hint"></p>
+        </div>
+      </section>
+
+      <!-- ============ 3. 群聊设置 ============ -->
+      <section class="view" id="view-group" hidden>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>群聊自动回复</h3><p class="muted tiny">关闭后所有群消息都不会自动回复</p></div>
+              <label class="switch"><input type="checkbox" data-bind="bot.group_enabled"><span class="track"></span></label>
+            </div>
+            <div class="field">
+              <span class="field-label">回复范围</span>
+              <div class="seg" data-bind-radio="group.mode">
+                <label class="seg-opt"><input type="radio" name="group.mode" value="all"><span>全部群聊</span></label>
+                <label class="seg-opt"><input type="radio" name="group.mode" value="include"><span>仅名单内</span></label>
+                <label class="seg-opt"><input type="radio" name="group.mode" value="exclude"><span>名单外全回</span></label>
+              </div>
+              <p class="hint" id="group-mode-hint"></p>
+            </div>
+            <div class="field">
+              <label for="group-trigger">触发方式</label>
+              <select id="group-trigger" data-bind="group.trigger">
+                <option value="at">仅 @我 时回复（推荐）</option>
+                <option value="keyword">命中关键词 / @我 时回复</option>
+                <option value="all">所有群消息都回复（容易刷屏）</option>
+              </select>
+              <p class="hint" id="group-trigger-hint"></p>
+            </div>
+          </div>
+
+          <div class="card" id="group-list-card">
+            <div class="card-head">
+              <div><h3>群名单</h3><p class="muted tiny">按群名精确匹配，支持 * 通配</p></div>
+              <button class="btn sm ghost" type="button" data-sessions="group.chats">从微信拉取会话</button>
+            </div>
+            <div class="tags" data-tags="group.chats" data-placeholder="输入群名后按回车添加"></div>
+            <p class="hint" id="group-list-hint">回车添加标签，点 × 删除。</p>
+          </div>
+        </div>
+
+        <div class="card" id="group-keyword-card">
+          <div class="card-head">
+            <div><h3>群关键词</h3><p class="muted tiny">触发方式为「命中关键词」时才会用到</p></div>
+          </div>
+          <div class="tags" data-tags="group.keywords" data-placeholder="输入关键词后按回车，例如：小鱼"></div>
+          <p class="hint" id="group-keyword-hint"></p>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><h3>@所有人 也回复</h3><p class="muted tiny">群里有人 @所有人 时，是否也插一句</p></div>
+            <label class="switch"><input type="checkbox" data-bind="group.reply_to_at_all"><span class="track"></span></label>
+          </div>
+          <div class="notice">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="8" x2="12" y2="13"></line><circle cx="12" cy="16.5" r="0.9" fill="currentColor" stroke="none"></circle></svg>
+            <span>群聊建议用「仅 @我」，否则很容易刷屏被踢。宁可少回，也别在群里抢话。</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 4. 监听规则 ============ -->
+      <section class="view" id="view-rules" hidden>
+        <div class="card intro-card">
+          <div>
+            <h3>监听规则</h3>
+            <p class="muted">规则优先于上面的默认设置：按优先级从小到大匹配，命中即停。没有命中任何规则时，才走私聊 / 群聊的默认逻辑。</p>
+          </div>
+          <button class="btn primary" type="button" id="rule-new">＋ 新增规则</button>
+        </div>
+
+        <div class="rules" id="rules-list"></div>
+
+        <div class="card editor-card" id="rule-editor" hidden>
+          <div class="card-head">
+            <div><h3 id="rule-editor-title">编辑规则</h3><p class="muted tiny">改完先点「保存规则」，再点右上角「保存并生效」写入后端。</p></div>
+            <button class="icon-btn" type="button" id="rule-cancel-x" aria-label="关闭">×</button>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="field">
+              <label for="rule-name">规则名称</label>
+              <input id="rule-name" type="text" maxlength="60" placeholder="例如：打招呼">
+            </div>
+            <div class="field">
+              <span class="field-label">启用状态</span>
+              <label class="switch inline"><input type="checkbox" id="rule-enabled"><span class="track"></span><span class="switch-text" id="rule-enabled-text">已启用</span></label>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="field">
+              <span class="field-label">生效范围</span>
+              <div class="seg" id="rule-scope">
+                <label class="seg-opt"><input type="radio" name="rule.scope" value="all"><span>全部会话</span></label>
+                <label class="seg-opt"><input type="radio" name="rule.scope" value="private"><span>仅私聊</span></label>
+                <label class="seg-opt"><input type="radio" name="rule.scope" value="group"><span>仅群聊</span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="rule-match">匹配方式</label>
+              <select id="rule-match">
+                <option value="contains">包含关键词</option>
+                <option value="exact">完全等于</option>
+                <option value="startswith">以关键词开头</option>
+                <option value="regex">正则表达式</option>
+                <option value="always">总是命中</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-row">
+              <span class="field-label">指定会话</span>
+              <button class="btn sm ghost" type="button" id="rule-sessions">从微信拉取</button>
+            </div>
+            <div class="tags" data-rule-tags="chats" data-placeholder="留空 = 所有会话；输入群名/好友名回车添加"></div>
+          </div>
+
+          <div class="field" id="rule-patterns-field">
+            <span class="field-label">关键词 <em class="muted">（正则模式下每项写一个正则）</em></span>
+            <div class="tags" data-rule-tags="patterns" data-placeholder="输入关键词后回车添加"></div>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="field">
+              <label for="rule-action">命中后动作</label>
+              <select id="rule-action">
+                <option value="ai">AI 回复</option>
+                <option value="template">固定话术</option>
+                <option value="ignore">不回复</option>
+              </select>
+            </div>
+            <div class="grid grid-2 tight">
+              <div class="field">
+                <label for="rule-priority">优先级</label>
+                <input id="rule-priority" type="number" min="0" max="9999" step="1">
+                <span class="hint">数字小的先匹配</span>
+              </div>
+              <div class="field">
+                <label for="rule-cooldown">冷却秒数</label>
+                <input id="rule-cooldown" type="number" min="0" max="86400" step="0.5">
+              </div>
+            </div>
+          </div>
+
+          <div class="field" id="rule-template-field">
+            <label for="rule-template">固定话术</label>
+            <textarea id="rule-template" rows="3" placeholder="例如：在的在的，稍等我一下～"></textarea>
+            <span class="hint">可用占位符：{msg} 原消息 · {sender} 发送人 · {chat} 会话名 · {time} 当前时间 · {nickname} 我的昵称</span>
+          </div>
+
+          <div class="field" id="rule-prompt-field">
+            <label for="rule-prompt">追加提示词（仅 AI 回复时生效）</label>
+            <textarea id="rule-prompt" rows="3" placeholder="例如：这条消息是约饭，回答热情一点，并问清时间地点。"></textarea>
+          </div>
+
+          <div class="editor-foot">
+            <button class="btn ghost" type="button" id="rule-cancel">取消</button>
+            <button class="btn primary" type="button" id="rule-save">保存规则</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 5. AI 接口 ============ -->
+      <section class="view" id="view-persona" hidden>
+        <div class="card">
+          <div class="card-head">
+            <div><h3>它是谁</h3><p class="muted tiny">这几项会拼进每次对话的系统提示里</p></div>
+            <span class="badge" id="persona-badge">—</span>
+          </div>
+          <div class="grid grid-2 tight">
+            <div class="field">
+              <label for="persona-nickname">自称 / 名字</label>
+              <input id="persona-nickname" type="text" data-bind="ai.nickname" placeholder="小鱼" maxlength="20">
+              <span class="hint">它在微信里怎么称呼自己</span>
+            </div>
+            <div class="field">
+              <label for="persona-catchphrase">口头禅</label>
+              <input id="persona-catchphrase" type="text" data-bind="ai.catchphrase" placeholder="例如：行吧 / 好嘞" maxlength="30">
+              <span class="hint">偶尔用一次，别每句都带</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="persona-style">说话风格</label>
+            <input id="persona-style" type="text" data-bind="ai.speaking_style" placeholder="例如：短句、口语、不说套话，偶尔加个语气词">
+          </div>
+          <div class="field">
+            <label for="persona-taboos">底线 / 禁止事项</label>
+            <textarea id="persona-taboos" rows="3" data-bind="ai.taboos" placeholder="例如：不谈政治、不承诺转账、不透露自己是自动回复"></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><h3>人设 Prompt</h3><p class="muted tiny">最关键的一段，决定它的性格底色</p></div>
+            <div class="row">
+              <button class="btn ghost" type="button" id="persona-restore">恢复默认</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">风格预设</span>
+            <div class="row wrap" id="persona-presets"></div>
+            <span class="hint">点一下会填入一套现成的人设，之后可以随意改</span>
+          </div>
+          <textarea id="persona-text" rows="12" data-bind="ai.persona" class="mono" spellcheck="false"></textarea>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h3>追加要求</h3><p class="muted tiny">临时补充，会拼在人设后面</p></div></div>
+          <div class="field">
+            <label for="persona-extra">补充规则</label>
+            <textarea id="persona-extra" rows="4" data-bind="ai.extra_prompt" placeholder="例如：晚上 11 点后少聊，直接说明天再聊；群里被 @ 才接话。"></textarea>
+            <span class="hint">适合写时间、场合这类临时限制</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><h3>预览效果</h3><p class="muted tiny">用当前人设真实调用一次模型，不会发出任何消息</p></div>
+          </div>
+          <div class="field">
+            <label for="persona-preview-input">模拟对方说</label>
+            <textarea id="persona-preview-input" rows="2">在吗？最近怎么样</textarea>
+          </div>
+          <div class="row">
+            <button class="btn" type="button" id="persona-preview-btn">用它回一句试试</button>
+            <span class="hint">需要先在「AI 接口」里配好 Key</span>
+          </div>
+          <div class="result" id="persona-preview-result" hidden></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-ai" hidden>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>模型服务</h3><p class="muted tiny">兼容 OpenAI 协议的接口都能用</p></div>
+              <span class="badge" id="ai-key-badge">未配置</span>
+              <span class="hint" id="ai-key-hint">密钥只保存在本机；为防止泄露，页面上不回显，留空保存表示不修改</span>
+            </div>
+            <div class="field">
+              <label for="ai-provider">服务商</label>
+              <select id="ai-provider" data-bind="ai.provider"></select>
+            </div>
+            <div class="field">
+              <label for="ai-base-url">Base URL</label>
+              <input id="ai-base-url" type="text" data-bind="ai.base_url" placeholder="例如 api.deepseek.com（需带 https 协议前缀）" spellcheck="false" autocomplete="off">
+              <span class="hint">地址要写完整，包含协议前缀；OpenAI、硅基流动等服务商的域名后面还要保留 /v1</span>
+            </div>
+            <div class="field">
+              <label for="ai-api-key">API Key</label>
+              <div class="input-with-btn">
+                <input id="ai-api-key" type="password" data-bind="ai.api_key" placeholder="sk-..." spellcheck="false" autocomplete="new-password">
+                <button class="icon-btn" type="button" id="toggle-key" aria-label="显示或隐藏密钥">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"></path><circle cx="12" cy="12" r="2.6"></circle></svg>
+                </button>
+              </div>
+              <span class="hint">密钥只存在本机 data/config.json，不会上传到任何地方</span>
+            </div>
+            <div class="field">
+              <label for="ai-model">模型名</label>
+              <input id="ai-model" type="text" data-bind="ai.model" list="model-options" spellcheck="false" placeholder="deepseek-chat">
+              <datalist id="model-options"></datalist>
+              <span class="hint">可以从建议里选，也可以自己手填</span>
+            </div>
+            <div class="field">
+              <label for="vision-test-path">识图测试（可选）</label>
+              <div class="row">
+                <input id="vision-test-path" type="text" placeholder="填一张本地图片路径，例如 E:\图片\test.jpg">
+                <button class="btn ghost" type="button" id="vision-test-btn">测一下</button>
+              </div>
+              <span class="hint">DeepSeek 的 deepseek-chat 已支持读图，识图模型填它就能用</span>
+              <div class="result" id="vision-test-result" hidden></div>
+            </div>
+            <div class="field">
+              <span class="field-label">使用系统代理</span>
+              <label class="switch inline"><input type="checkbox" data-bind="ai.respect_system_proxy"><span class="track"></span><span class="switch-text">模型请求走系统代理</span></label>
+              <span class="hint">默认关闭 = 直连。如果你的系统代理开了但代理程序没运行，开启它会连不上</span>
+            </div>
+            <div class="field">
+              <label for="ai-vision-model">识图模型（可选）</label>
+              <input id="ai-vision-model" type="text" data-bind="ai.vision_model" spellcheck="false" placeholder="留空 = 不识别图片；支持图片的模型名，例如 qwen-vl-max / glm-4v / gpt-4o">
+              <span class="hint">走同一个 Base URL 和 API Key，只是换模型；留空则只保存收到的图片，不识别内容</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><h3>生成参数</h3><p class="muted tiny">不确定就保持默认</p></div></div>
+            <div class="field">
+              <label for="ai-temperature">温度 <output class="out-val" id="temp-value">1.1</output></label>
+              <input id="ai-temperature" type="range" min="0" max="2" step="0.1" data-bind="ai.temperature">
+              <span class="hint">越高越活泼发散，越低越稳定克制</span>
+            </div>
+            <div class="grid grid-2 tight">
+              <div class="field">
+                <label for="ai-max-tokens">最大回复 tokens</label>
+                <input id="ai-max-tokens" type="number" min="16" max="8192" step="1" data-bind="ai.max_tokens">
+              </div>
+              <div class="field">
+                <label for="ai-timeout">超时（秒）</label>
+                <input id="ai-timeout" type="number" min="5" max="600" step="1" data-bind="ai.timeout">
+              </div>
+              <div class="field">
+                <label for="ai-history">上下文轮数</label>
+                <input id="ai-history" type="number" min="0" max="50" step="1" data-bind="ai.history_rounds">
+              </div>
+              <div class="field">
+                <label for="ai-reply-max">回复字数上限</label>
+                <input id="ai-reply-max" type="number" min="20" max="4000" step="10" data-bind="ai.reply_max_chars">
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="field">
+              <span class="field-label">连通测试</span>
+              <div class="row">
+                <button class="btn" type="button" id="ai-test-btn">测试连接</button>
+                <span class="hint" id="ai-test-hint">用当前表单里的地址 / 密钥 / 模型直接发一次真实请求，不需要先保存</span>
+              </div>
+              <div class="result" id="ai-test-result" hidden></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><h3>试跑几句</h3><p class="muted tiny">走完整判定 + 真实模型调用，但绝不会发送任何消息</p></div>
+          </div>
+          <div class="field">
+            <label for="preview-text">模拟消息内容</label>
+            <textarea id="preview-text" rows="2" placeholder="例如：@落小鱼 在吗"></textarea>
+          </div>
+          <div class="grid grid-3 tight">
+            <div class="field">
+              <label for="preview-type">会话类型</label>
+              <select id="preview-type">
+                <option value="friend">私聊</option>
+                <option value="group">群聊</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="preview-sender">发送人</label>
+              <input id="preview-sender" type="text" value="小明">
+            </div>
+            <div class="field">
+              <label for="preview-chat">会话名</label>
+              <input id="preview-chat" type="text" value="测试会话">
+            </div>
+          </div>
+          <div class="row-end">
+            <button class="btn primary" type="button" id="preview-btn">试跑这条消息</button>
+          </div>
+          <div class="result" id="preview-result" hidden></div>
+        </div>
+      </section>
+
+      <!-- ============ 6. 收发节奏 ============ -->
+      <section class="view" id="view-rhythm" hidden>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>总开关</h3><p class="muted tiny">关掉之后，任何消息都不会自动回复</p></div>
+              <label class="switch"><input type="checkbox" data-bind="bot.enabled"><span class="track"></span></label>
+            </div>
+            <div class="field">
+              <span class="field-label">回复随机延迟区间</span>
+              <div class="inline-fields">
+                <input type="number" min="0" max="60" step="0.5" data-bind="bot.reply_delay_min" aria-label="最小秒">
+                <span class="unit">秒 ～</span>
+                <input type="number" min="0" max="60" step="0.5" data-bind="bot.reply_delay_max" aria-label="最大秒">
+                <span class="unit">秒</span>
+              </div>
+              <span class="hint">每条回复在这个区间里随机等待，看着更像真人；最大值不能小于最小值</span>
+            </div>
+            <div class="grid grid-2 tight">
+              <div class="field">
+                <label for="bot-cooldown">同一会话冷却</label>
+                <div class="inline-fields">
+                  <input id="bot-cooldown" type="number" min="0" max="3600" step="1" data-bind="bot.per_chat_cooldown">
+                  <span class="unit">秒</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="bot-global">全局每分钟上限</label>
+                <div class="inline-fields">
+                  <input id="bot-global" type="number" min="1" max="600" step="1" data-bind="bot.global_per_minute">
+                  <span class="unit">条</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h3>免打扰时段</h3><p class="muted tiny">这个时间段内只记日志，不回复</p></div>
+              <label class="switch"><input type="checkbox" data-bind="bot.quiet_hours_enabled"><span class="track"></span></label>
+            </div>
+            <div class="grid grid-2 tight" id="quiet-fields">
+              <div class="field">
+                <label for="quiet-start">开始时间</label>
+                <input id="quiet-start" type="time" data-bind="bot.quiet_start">
+              </div>
+              <div class="field">
+                <label for="quiet-end">结束时间</label>
+                <input id="quiet-end" type="time" data-bind="bot.quiet_end">
+              </div>
+            </div>
+            <span class="hint">跨午夜没问题，例如 23:30 → 07:30</span>
+            <div class="divider"></div>
+            <div class="field">
+              <label for="bot-takeover">人工接管时长</label>
+              <div class="inline-fields">
+                <input id="bot-takeover" type="number" min="0" max="1440" step="1" data-bind="bot.takeover_minutes">
+                <span class="unit">分钟</span>
+              </div>
+              <span class="hint">你手动回了某个会话的消息后，该会话暂停自动回复多少分钟（0 = 不接管）</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h3>轮询与队列</h3><p class="muted tiny">影响灵敏度和稳定性</p></div></div>
+          <div class="grid grid-3 tight">
+            <div class="field">
+              <label for="bot-poll">轮询间隔</label>
+              <div class="inline-fields">
+                <input id="bot-poll" type="number" min="0.5" max="30" step="0.5" data-bind="bot.poll_interval">
+                <span class="unit">秒</span>
+              </div>
+              <span class="hint">越小越及时，但更吃 CPU</span>
+            </div>
+            <div class="field">
+              <label for="bot-maxqueue">队列上限</label>
+              <div class="inline-fields">
+                <input id="bot-maxqueue" type="number" min="1" max="1000" step="1" data-bind="bot.max_queue">
+                <span class="unit">条</span>
+              </div>
+              <span class="hint">积压满了就丢弃新消息</span>
+            </div>
+            <div class="field">
+              <span class="field-label">保留聊天记录</span>
+              <label class="switch inline"><input type="checkbox" data-bind="bot.keep_history"><span class="track"></span><span class="switch-text">作为上下文给模型</span></label>
+            </div>
+            <div class="field">
+              <span class="field-label">发消息时隐藏桌面分身画面</span>
+              <label class="switch inline"><input type="checkbox" data-bind="bot.auto_hide_viewer"><span class="track"></span><span class="switch-text">避免远程光标带动本机鼠标</span></label>
+              <span class="hint">画面开着时，RDP 会把分身后的光标映射到你的鼠标上；关掉这个开关就会一直可见</span>
+            </div>
+            <div class="field">
+              <span class="field-label">收到图片时别装没看见</span>
+              <label class="switch inline"><input type="checkbox" data-bind="bot.image_reply"><span class="track"></span><span class="switch-text">没有识图模型也回一句</span></label>
+            </div>
+            <div class="field">
+              <span class="field-label">分身干净启动</span>
+              <label class="switch inline"><input type="checkbox" data-bind="bot.child_session_clean_boot"><span class="track"></span><span class="switch-text">建分身时临时挂起我的启动项</span></label>
+              <span class="hint">分身登录那一刻没有任何第三方启动项可跑（比事后清理更彻底），登录完成后立刻恢复；主桌面早已登录，不受影响</span>
+            </div>
+            <div class="field">
+              <span class="field-label">分身瘦身（只留微信）</span>
+              <label class="switch inline"><input type="checkbox" data-bind="bot.child_session_slim"><span class="track"></span><span class="switch-text">自动关掉分身里没用的启动项</span></label>
+              <span class="hint">分身登录时会照搬你的开机启动（Steam / QQ / 网盘 / 驱动托盘…），开着就自动清理，只保留微信和系统进程</span>
+            </div>
+            <div class="field">
+              <label for="slim-extra">额外要关掉的程序</label>
+              <input id="slim-extra" type="text" data-bind="bot.child_session_kill_extra" placeholder="英文逗号分隔，例如 hipstray.exe,securityhealthsystray.exe">
+              <span class="hint">内置名单已包含 27 个常见程序，这里补充你要额外关的</span>
+            </div>
+            <div class="field">
+              <span class="field-label">收藏表情包</span>
+              <label class="switch inline"><input type="checkbox" data-bind="bot.sticker_enabled"><span class="track"></span><span class="switch-text">别人发的表情包自动存进表情库</span></label>
+            </div>
+            <div class="field">
+              <span class="field-label">主动发表情包</span>
+              <label class="switch inline"><input type="checkbox" data-bind="bot.sticker_send"><span class="track"></span><span class="switch-text">对方发表情包时，用表情库回一张</span></label>
+              <span class="hint">表情包存在 data\media\stickers，回复时随机挑一张发出去</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><h3>永久忽略</h3><p class="muted tiny">这里的对象永远不回复，优先级最高</p></div>
+          </div>
+          <div class="field">
+            <span class="field-label">忽略的会话</span>
+            <div class="tags" data-tags="blacklist.chats" data-placeholder="输入会话名后按回车"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">忽略的发送人</span>
+            <div class="tags" data-tags="blacklist.senders" data-placeholder="输入发送人名字后按回车"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">忽略的关键词</span>
+            <div class="tags" data-tags="blacklist.ignore_keywords" data-placeholder="消息里带这些词的都不回"></div>
+          </div>
+        </div>
+
+        <div class="card" id="takeover-card" hidden>
+          <div class="card-head">
+            <div><h3>正在人工接管</h3><p class="muted tiny">这些会话暂时不会自动回复</p></div>
+            <button class="btn sm ghost" type="button" id="takeover-refresh">刷新</button>
+          </div>
+          <div class="takeover-list" id="takeover-list"></div>
+        </div>
+      </section>
+
+      <!-- ============ 7. 消息日志 ============ -->
+      <section class="view" id="view-logs" hidden>
+        <div class="card">
+          <div class="log-toolbar">
+            <input id="log-filter" type="text" placeholder="按会话名精确筛选，留空显示全部">
+            <button class="btn" type="button" id="log-search">筛选</button>
+            <button class="btn ghost" type="button" id="log-refresh">刷新</button>
+            <button class="btn danger" type="button" id="log-clear">清空日志</button>
+            <span class="muted tiny" id="log-count"></span>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:132px">时间</th>
+                  <th style="width:70px">方向</th>
+                  <th style="width:130px">会话</th>
+                  <th style="width:110px">发送人</th>
+                  <th>内容</th>
+                  <th style="width:78px">状态</th>
+                  <th style="width:180px">备注</th>
+                </tr>
+              </thead>
+              <tbody id="log-body"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="log-empty" hidden>
+            <p class="empty-title">还没有消息记录</p>
+            <p class="muted tiny">启动机器人后，收到和发出的消息都会记在这里。</p>
+          </div>
+          <div class="row-center">
+            <button class="btn ghost" type="button" id="log-more" hidden>加载更多</button>
+          </div>
+        </div>
+
+        <div class="card" id="run-log-card">
+          <div class="card-head">
+            <div><h3>运行日志</h3><p class="muted tiny">磁盘上的原始日志，排查问题用</p></div>
+            <div class="row">
+              <button class="btn ghost" type="button" id="runlog-open">打开文件夹</button>
+              <button class="btn ghost" type="button" id="runlog-refresh">刷新列表</button>
+            </div>
+          </div>
+          <div class="log-toolbar">
+            <select id="runlog-file" style="min-width:300px"></select>
+            <select id="runlog-lines">
+              <option value="100">最后 100 行</option>
+              <option value="300" selected>最后 300 行</option>
+              <option value="800">最后 800 行</option>
+              <option value="2000">最后 2000 行</option>
+            </select>
+            <button class="btn" type="button" id="runlog-load">读取</button>
+            <button class="btn ghost" type="button" id="runlog-download">下载</button>
+            <span class="muted tiny" id="runlog-meta"></span>
+          </div>
+          <pre class="runlog" id="runlog-text">点「读取」查看日志内容</pre>
+        </div>
+      </section>
+
+      <!-- ============ 8. 系统设置 ============ -->
+      <section class="view" id="view-system" hidden>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head"><div><h3>接入模式</h3><p class="muted tiny">切换后需要重启机器人才生效</p></div></div>
+            <div class="seg stacked" data-bind-radio="adapter">
+              <label class="seg-opt"><input type="radio" name="adapter" value="wxauto"><span>真实微信（wxauto）</span></label>
+              <label class="seg-opt"><input type="radio" name="adapter" value="mock"><span>模拟模式（mock）</span></label>
+            </div>
+            <div class="notice">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="8" x2="12" y2="13"></line><circle cx="12" cy="16.5" r="0.9" fill="currentColor" stroke="none"></circle></svg>
+              <span>模拟模式不连微信，用来试用界面、调模型、跑自测。真实模式需要本机登录微信桌面版。</span>
+            </div>
+            <div class="kv compact">
+              <div class="kv-row"><span>数据目录</span><b id="data-dir" class="mono-sm">—</b></div>
+              <div class="kv-row"><span>当前适用模式</span><b id="adapter-live">—</b></div>
+            </div>
+            <div class="row-end">
+              <button class="btn ghost" type="button" id="sessions-refresh-system">刷新微信会话列表</button>
+            </div>
+            <div class="result" id="sessions-result" hidden></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><h3>发送测试消息</h3><p class="muted tiny">直接通过当前适配器发一条消息出去</p></div></div>
+            <div class="field">
+              <label for="send-chat">会话名</label>
+              <input id="send-chat" type="text" placeholder="好友 / 群名，例如：张三">
+            </div>
+            <div class="field">
+              <label for="send-text">消息内容</label>
+              <textarea id="send-text" rows="3" placeholder="例如：这是一条测试消息"></textarea>
+            </div>
+            <div class="row-end">
+              <button class="btn primary" type="button" id="send-btn">发送</button>
+            </div>
+            <div class="result" id="send-result" hidden></div>
+          </div>
+        </div>
+
+        <div class="card" id="mock-card" hidden>
+          <div class="card-head">
+            <div><h3>模拟测试</h3><p class="muted tiny">注入一条假消息，走完整流程（需要机器人已启动）</p></div>
+          </div>
+          <div class="grid grid-2 tight">
+            <div class="field">
+              <label for="mock-chat">会话名</label>
+              <input id="mock-chat" type="text" value="张三">
+            </div>
+            <div class="field">
+              <label for="mock-sender">发送人</label>
+              <input id="mock-sender" type="text" value="张三">
+            </div>
+            <div class="field">
+              <label for="mock-type">会话类型</label>
+              <select id="mock-type">
+                <option value="friend">私聊</option>
+                <option value="group">群聊</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mock-content">消息内容</label>
+              <input id="mock-content" type="text" value="在吗，晚上吃啥">
+            </div>
+          </div>
+          <div class="row-end">
+            <button class="btn primary" type="button" id="mock-inject-btn">注入消息</button>
+          </div>
+          <div class="result" id="mock-result" hidden></div>
+          <div class="divider"></div>
+          <div class="card-head">
+            <div><h3 class="h4">模拟模式下已"发出"的消息</h3><p class="muted tiny">只在内存里，重启就没了</p></div>
+            <button class="btn sm ghost" type="button" id="mock-refresh">刷新</button>
+          </div>
+          <ul class="sent-list" id="mock-list"></ul>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card" id="childlogin-card">
+            <div class="card-head">
+              <div><h3>桌面分身登录</h3><p class="muted tiny">分身要能自己登录，才不会每次都弹「凭据不工作」</p></div>
+              <span class="badge" id="childlogin-badge">检查中</span>
+            </div>
+            <ul class="event-list" id="childlogin-list"></ul>
+            <div class="grid grid-2" style="margin-top:10px">
+              <div class="field">
+                <label for="cred-user">登录账户</label>
+                <input id="cred-user" type="text" placeholder="MicrosoftAccount\你的邮箱" value="MicrosoftAccount\2379871014@qq.com">
+              </div>
+              <div class="field">
+                <label for="cred-pass">密码</label>
+                <input id="cred-pass" type="password" placeholder="Windows 登录密码">
+              </div>
+            </div>
+            <div class="row-end">
+              <button class="btn primary" type="button" id="cred-save">保存凭据（不再弹窗）</button>
+            </div>
+
+            <div class="row-end">
+              <button class="btn ghost" type="button" id="viewer-hide">隐藏分身窗口</button>
+              <button class="btn ghost" type="button" id="viewer-show">显示分身窗口</button>
+              <button class="btn" type="button" id="childlogin-fix">一键修复登录</button>
+            </div>
+            <p class="hint">⚠️ 分身窗口**可见时**，机器人在分身里动鼠标会连带你的真实鼠标一起动。平时保持隐藏，只有登录微信/排查时才显示。</p>
+            <p class="hint">会以管理员身份运行「修复桌面分身登录.bat」：关掉「仅允许 Windows Hello 登录」，并把 localhost 的凭据存进凭据管理器。跑完注销重登一次。</p>
+          </div>
+
+          <div class="card" id="sticker-card">
+            <div class="card-head">
+              <div><h3>表情库</h3><p class="muted tiny">别人发来的表情包会存进这里，回复时随机挑一张</p></div>
+              <div class="row">
+                <button class="btn sm ghost" type="button" id="sticker-send-test">试发一张</button>
+                <button class="btn sm ghost" type="button" id="sticker-open">打开文件夹</button>
+                <button class="btn sm ghost" type="button" id="sticker-refresh">刷新</button>
+              </div>
+            </div>
+            <p class="muted tiny" id="sticker-meta">—</p>
+            <div class="sticker-grid" id="sticker-grid"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h3>系统事件</h3><p class="muted tiny">最近 20 条</p></div>
+              <button class="btn sm ghost" type="button" id="events-refresh">刷新</button>
+            </div>
+            <ul class="event-list" id="events-list"></ul>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><h3>关于</h3></div></div>
+            <div class="kv compact">
+              <div class="kv-row"><span>产品</span><b>落小鱼</b></div>
+              <div class="kv-row"><span>版本</span><b id="about-version">—</b></div>
+              <div class="kv-row"><span>技术</span><b>wxauto 操作微信 3.9.11.17</b></div>
+              <div class="kv-row"><span>访问范围</span><b>仅本机 127.0.0.1</b></div>
+            </div>
+            <p class="hint">前端是纯静态页面，不联网、不加载任何外部资源；所有请求都发往本机后端 <code>/api/...</code>。</p>
+            <p class="hint">用 wxauto 操作微信窗口收发消息，请保持微信登录状态、窗口不要最小化。</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- 右下角固定保存 -->
+<div class="save-fab">
+  <span class="save-hint" id="fab-hint">改完记得保存</span>
+  <button class="btn primary big" type="button" id="btn-save-fab">保存并生效</button>
+</div>
+
+<!-- Toast 容器 -->
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<!-- 会话选择弹窗 -->
+<div class="modal-mask" id="modal-sessions" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>从微信拉取会话</h3>
+      <button class="icon-btn" type="button" data-close-modal aria-label="关闭">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <input id="session-search" type="text" placeholder="搜索会话名…">
+        <button class="btn ghost" type="button" id="sessions-reload">重新拉取</button>
+      </div>
+      <p class="hint">勾选要加入名单的会话；已经在名单里的会显示为「已加入」。</p>
+      <div class="session-list" id="session-list"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="muted tiny" id="session-selected-count">已选 0 个</span>
+      <button class="btn ghost" type="button" data-close-modal>取消</button>
+      <button class="btn primary" type="button" id="sessions-confirm">加入名单</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通用确认弹窗 -->
+<div class="modal-mask" id="modal-confirm" hidden>
+  <div class="modal narrow">
+    <div class="modal-head"><h3 id="confirm-title">确认操作</h3></div>
+    <div class="modal-body"><p id="confirm-message" class="confirm-text"></p></div>
+    <div class="modal-foot">
+      <button class="btn ghost" type="button" id="confirm-cancel">取消</button>
+      <button class="btn danger" type="button" id="confirm-ok">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 启动失败遮罩 -->
+<div class="fatal" id="fatal" hidden>
+  <div class="fatal-card">
+    <h2>连不上后端</h2>
+    <p id="fatal-message">请确认 落小鱼 主程序已经启动，然后重试。</p>
+    <div class="fatal-actions">
+      <button class="btn primary" type="button" id="fatal-retry">重新连接</button>
+      <button class="btn ghost" type="button" id="fatal-preview">先看看界面</button>
+    </div>
+  </div>
+</div>
+
+<!-- 退出程序（托盘不可用时的兜底入口） -->
+<script>
+  (function () {
+    var quit = document.getElementById('btn-quit-app');
+    if (!quit) return;
+    quit.addEventListener('click', function () {
+      if (!confirm('确定要退出 落小鱼 吗？退出后自动回复会停止。')) return;
+      quit.disabled = true;
+      quit.textContent = '正在退出…';
+      fetch('/api/shutdown', { method: 'POST' })
+        .catch(function () {})
+        .then(function () {
+          document.body.innerHTML =
+            '<div style="display:flex;height:100vh;align-items:center;justify-content:center;' +
+            'flex-direction:column;gap:10px;background:#0f1420;color:#ffc457;' +
+            'font:16px/1.7 system-ui,\'Microsoft YaHei\',sans-serif">' +
+            '<div style="font-size:22px;font-weight:700">落小鱼 已退出</div>' +
+            '<div style="color:#8a93a6;font-size:13px">后台服务已关闭，这个页面可以关掉了。</div></div>';
+        });
+    });
+  })();
+</script>
+
+</body>
+</html>

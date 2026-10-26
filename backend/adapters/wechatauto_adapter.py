@@ -109,6 +109,26 @@ def _patch_library(pids_provider) -> None:
         log.exception("替换进程查找失败")
 
 
+_WECHAT_WINDOW_CLASSES = {"Qt51514QWindowIcon", "Chrome_WidgetWin_1", "WeChatMainWndForPC"}
+
+
+def _enum_windows() -> list[int]:
+    """枚举顶层窗口句柄（只枚举、不挑选）。"""
+    user32 = ctypes.windll.user32
+    found: list[int] = []
+
+    @ctypes.WINFUNCTYPE(ctypes.c_bool, wt.HWND, wt.LPARAM)
+    def _cb(hwnd, _lparam):  # noqa: ANN001
+        found.append(int(hwnd))
+        return True
+
+    try:
+        user32.EnumWindows(_cb, 0)
+    except Exception:  # noqa: BLE001
+        return []
+    return found
+
+
 class WechatautoAdapter(BaseAdapter):
     name = "wechatauto"
 
@@ -139,6 +159,13 @@ class WechatautoAdapter(BaseAdapter):
         self._names: dict[str, str] = {}
         self._self_username = ""
         self._started_at = 0.0
+        # 启动时的 sort_seq 水位线：比它旧的消息一律不回，避免重放停机期间的积压
+        self._seq_watermark = 0
+        # 发送状态：none=还没提交 / submitted=已按回车但未确认（绝不再重发）
+        self._submit_state = "none"
+        # 显式绑定微信主窗口：多开时不能靠"按类名全局挑窗"，否则可能操作错窗口
+        self._bound_hwnd = 0
+        self._bound_pid = 0
         self._listening = False
         self._last_poll = 0.0
 
@@ -389,6 +416,12 @@ class WechatautoAdapter(BaseAdapter):
                 self._refresh_names()
             except Exception:  # noqa: BLE001
                 log.debug("nickname_map 失败", exc_info=True)
+            try:
+                self._seq_watermark = self._compute_seq_watermark()
+                if self._seq_watermark:
+                    log.info("消息水位线 = %s（更旧的消息不再回复）", self._seq_watermark)
+            except Exception:  # noqa: BLE001
+                log.debug("计算水位线失败", exc_info=True)
             log.info(
                 "数据库已就绪：%s（%s），昵称表 %d 条，用时 %.1fs",
                 self._self_username,
@@ -528,6 +561,14 @@ class WechatautoAdapter(BaseAdapter):
             log.exception("处理数据库消息失败")
 
     def _handle_row(self, row: dict[str, Any]) -> None:
+        # 水位线：比启动时旧的消息（停机期间的积压）直接丢掉，避免"复活"旧对话
+        if self._seq_watermark:
+            try:
+                seq = int(row.get("sort_seq") or 0)
+            except Exception:  # noqa: BLE001
+                seq = 0
+            if seq and seq <= self._seq_watermark:
+                return
         created = float(row.get("create_time") or 0)
         if created and self._started_at and created < self._started_at - 120:
             return  # 启动前的历史消息不回复
@@ -584,39 +625,56 @@ class WechatautoAdapter(BaseAdapter):
             log.exception("on_message 回调异常")
 
     # ------------------------------------------------------------------ actions
-    @staticmethod
-    def _find_main_window() -> int:
-        """Largest visible WeChat Qt window (independent of library internals)."""
-        user32 = ctypes.windll.user32
-        best = 0
-        best_area = 0
-        enum_proc = ctypes.WINFUNCTYPE(wt.BOOL, wt.HWND, wt.LPARAM)
+    def _find_main_window(self) -> int:
+        """定位微信主窗口，并**显式绑定** HWND。
 
-        def cb(hwnd, _lparam):  # noqa: ANN001
-            nonlocal best, best_area
+        多开或存在相似窗口时，按类名全局挑选可能拿到别的窗口，
+        导致"发错窗口"这类高危故障。这里绑定一次，之后每次校验
+        （窗口还在、类名对、进程属于微信），失效才重新绑定。
+        """
+        user32 = ctypes.windll.user32
+        # 1) 已绑定且仍然有效 → 直接用
+        if self._bound_hwnd:
             try:
-                if not user32.IsWindowVisible(hwnd):
-                    return True
-                cls = ctypes.create_unicode_buffer(256)
-                user32.GetClassNameW(hwnd, cls, 256)
-                if not cls.value.startswith("Qt5"):
-                    return True
-                n = user32.GetWindowTextLengthW(hwnd)
-                title = ctypes.create_unicode_buffer(n + 2)
-                user32.GetWindowTextW(hwnd, title, n + 1)
-                if "微信" not in title.value and "Weixin" not in title.value:
-                    return True
-                rect = wt.RECT()
-                if not user32.GetWindowRect(hwnd, ctypes.byref(rect)):
-                    return True
-                area = max(0, rect.right - rect.left) * max(0, rect.bottom - rect.top)
-                if area > best_area:
-                    best, best_area = int(hwnd), area
+                if user32.IsWindow(self._bound_hwnd):
+                    cls = ctypes.create_unicode_buffer(256)
+                    user32.GetClassNameW(self._bound_hwnd, cls, 256)
+                    if cls.value in _WECHAT_WINDOW_CLASSES:
+                        return int(self._bound_hwnd)
             except Exception:  # noqa: BLE001
                 pass
-            return True
+            log.info("已绑定的微信窗口失效（hwnd=%s），重新绑定", self._bound_hwnd)
+            self._bound_hwnd = 0
 
-        user32.EnumWindows(enum_proc(cb), 0)
+        # 2) 重新枚举：只认微信进程的窗口
+        best = 0
+        best_area = 0
+        weixin_pids = set(_weixin_pids())
+        try:
+            hwnds = [h for h in _enum_windows() if h]
+        except Exception:  # noqa: BLE001
+            hwnds = []
+        for hwnd in hwnds:
+            try:
+                cls = ctypes.create_unicode_buffer(256)
+                user32.GetClassNameW(hwnd, cls, 256)
+                if cls.value not in _WECHAT_WINDOW_CLASSES:
+                    continue
+                pid = wt.DWORD()
+                user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                if weixin_pids and int(pid.value) not in weixin_pids:
+                    continue
+                rect = wt.RECT()
+                user32.GetWindowRect(hwnd, ctypes.byref(rect))
+                area = max(0, rect.right - rect.left) * max(0, rect.bottom - rect.top)
+                if area > best_area:
+                    best_area, best = area, int(hwnd)
+                    self._bound_pid = int(pid.value)
+            except Exception:  # noqa: BLE001
+                continue
+        if best:
+            self._bound_hwnd = best
+            log.info("已绑定微信主窗口：hwnd=%s pid=%s", best, self._bound_pid)
         return best
 
     def _ensure_window_on_screen(self) -> str:
@@ -717,6 +775,111 @@ class WechatautoAdapter(BaseAdapter):
 
 
 
+
+
+    def _compute_seq_watermark(self) -> int:
+        """取所有会话里最大的 sort_seq，作为"只回新消息"的分界线。"""
+        best = 0
+        try:
+            chats = [c["username"] for c in self._db.list_message_chats()[:40]]
+        except Exception:  # noqa: BLE001
+            return 0
+        for chat in chats:
+            try:
+                rows = self._db.get_messages(chat, limit=1)
+            except Exception:  # noqa: BLE001
+                continue
+            for r in rows or []:
+                try:
+                    best = max(best, int(r.get("sort_seq") or 0))
+                except Exception:  # noqa: BLE001
+                    pass
+        return best
+
+    # ---------------------------------------------- UIA 闸门 / 登录页自愈
+    def _wake_uia(self) -> bool:
+        """重新唤醒微信的 Qt 无障碍闸门。
+
+        实测微信跑一段时间后控件树会"冷掉"（只剩 MMUIRenderSubWindowHW），
+        此时 current_chat() 返回 None、搜索框找不到、所有发送都会超时。
+        重新写一次闸门字节 + 打开屏幕阅读器标志通常能恢复。
+        """
+        uia = self._uia
+        if uia is None:
+            return False
+        try:
+            try:
+                uia._set_screen_reader_flag(True)  # noqa: SLF001
+            except Exception:  # noqa: BLE001
+                pass
+            hwnd = self._find_main_window()
+            if hwnd:
+                try:
+                    uia._hot_activate_accessibility(hwnd, verify=True)  # noqa: SLF001
+                except Exception:  # noqa: BLE001
+                    pass
+            ok = False
+            try:
+                ok = bool(uia._wake_accessibility())  # noqa: SLF001
+            except Exception:  # noqa: BLE001
+                ok = False
+            time.sleep(0.6)
+            try:
+                uia._win = uia._find_main()  # noqa: SLF001
+            except Exception:  # noqa: BLE001
+                pass
+            if uia.current_chat() is not None:
+                log.info("已重新唤醒微信控件树")
+                return True
+            log.warning("控件树仍然冷着（wake=%s）", ok)
+        except Exception:  # noqa: BLE001
+            log.debug("唤醒控件树异常", exc_info=True)
+        return False
+
+    def _ensure_chat_ui(self) -> tuple[bool, str]:
+        """确保微信在主界面（不在登录/进入确认页）。"""
+        uia = self._uia
+        if uia is None:
+            return False, "UIA 未就绪"
+        hwnd = self._find_main_window()
+        if not hwnd:
+            return False, "找不到微信窗口"
+        # 主窗口至少要有 500 宽；更小多半是登录/确认页
+        try:
+            rect = wt.RECT()
+            ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
+            width = rect.right - rect.left
+            height = rect.bottom - rect.top
+        except Exception:  # noqa: BLE001
+            width, height = 0, 0
+        if width and width < 500:
+            # 点一下"进入微信"绿色按钮（距底边约 8%）
+            x = rect.left + width // 2
+            y = rect.bottom - int(height * 0.08)
+            log.info("微信在小窗口（%dx%d），尝试点「进入微信」", width, height)
+            try:
+                user32 = ctypes.windll.user32
+                user32.SetCursorPos(x, y)
+                time.sleep(0.15)
+                user32.mouse_event(0x0002, 0, 0, 0, 0)
+                time.sleep(0.06)
+                user32.mouse_event(0x0004, 0, 0, 0, 0)
+            except Exception:  # noqa: BLE001
+                pass
+            time.sleep(3.5)
+            hwnd = self._find_main_window()
+            try:
+                rect = wt.RECT()
+                ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
+                width = rect.right - rect.left
+            except Exception:  # noqa: BLE001
+                width = 0
+            if width and width < 500:
+                return False, "微信停在登录/确认页（可能需要在手机上确认登录）"
+        if uia.current_chat() is None and not self._wake_uia():
+            return False, "微信控件树没有就绪（wake 失败）"
+        return True, ""
+
     def _hide_viewer(self) -> None:
         """动鼠标/按键之前先藏分身窗口，否则 RDP 会把光标映射到用户真实鼠标上。"""
         try:
@@ -728,11 +891,11 @@ class WechatautoAdapter(BaseAdapter):
             pass
 
     def _open_chat_by_click(self, chat: str) -> bool:
-        """用「搜索过滤 + 逐行点击」切换会话。
+        """用搜索下拉的第一项切换会话（**只用真实控件矩形**）。
 
-        微信 4.x 的会话列表是自绘的，UIA 里根本没有列表项（实测只有导航按钮），
-        所以只能按坐标点。先输关键字过滤，目标会排在前面，然后从列表顶部往下
-        逐行试点，直到 current_chat() 变成目标为止。
+        早期版本用「窗口高度的 30%~42%」这种比例去试，窗口尺寸一变就会点错行。
+        现在改为：只有拿到真实控件（搜索框 / 下拉项）矩形才点，拿不到就直接返回
+        False —— 由上层显式降级为「未确认」，绝不盲点。
         """
         uia = self._uia
         self._hide_viewer()
@@ -741,55 +904,76 @@ class WechatautoAdapter(BaseAdapter):
         win = getattr(uia, "_win", None)
         if win is None:
             return False
-        try:
-            rect = win.BoundingRectangle
-            left, top = rect.left, rect.top
-            width, height = rect.right - rect.left, rect.bottom - rect.top
-        except Exception:  # noqa: BLE001
-            return False
 
+        # 1) 搜索框：必须是真实控件
         box = None
         try:
             box = uia._search_box(win, expand=True)  # noqa: SLF001
-            if box is not None:
-                from .. import keyinput
-
-                try:
-                    box.SetFocus()
-                except Exception:  # noqa: BLE001
-                    pass
-                time.sleep(0.2)
-                keyinput.select_all()
-                keyinput.type_text(chat)
-                time.sleep(1.3)
-                keyinput.press_enter()
-                time.sleep(1.2)
         except Exception:  # noqa: BLE001
             box = None
+        if box is None:
+            log.warning("切会话降级：找不到搜索框控件（不盲点）")
+            return False
 
-        user32 = ctypes.windll.user32
-        x = int(left + width * 0.18)
-        for frac in (0.30, 0.32, 0.34, 0.36, 0.38, 0.40, 0.42):
-            y = int(top + height * frac)
+        # 2) 真实按键输入（ValuePattern 写值微信不触发搜索）
+        try:
+            from .. import keyinput
+
             try:
-                user32.SetCursorPos(x, y)
-                time.sleep(0.1)
-                user32.mouse_event(0x0002, 0, 0, 0, 0)  # LEFTDOWN
-                time.sleep(0.06)
-                user32.mouse_event(0x0004, 0, 0, 0, 0)  # LEFTUP
-                time.sleep(1.1)
-                if uia.current_chat() == chat:
-                    log.info("点击列表切换会话成功：%s（y=%.2f）", chat, frac)
-                    return True
+                box.SetFocus()
+            except Exception:  # noqa: BLE001
+                pass
+            time.sleep(0.2)
+            keyinput.select_all()
+            keyinput.type_text(chat)
+            time.sleep(1.3)
+        except Exception:  # noqa: BLE001
+            log.warning("切会话降级：键盘输入失败")
+            return False
+
+        # 3) 下拉第一项：只认 UIA 里真实存在的控件
+        item = None
+        for ctrl in (
+            lambda: win.ListItemControl(Name=chat, searchDepth=14),
+            lambda: win.TextControl(Name=chat, searchDepth=14),
+            lambda: win.ButtonControl(Name=chat, searchDepth=14),
+        ):
+            try:
+                cand = ctrl()
+                if cand.Exists(0.8):
+                    item = cand
+                    break
             except Exception:  # noqa: BLE001
                 continue
-        # 点不出来就把搜索框清掉，别让它挡住界面
+        if item is None:
+            # 拿不到控件就不点：清掉搜索框，交给上层判定
+            try:
+                from .. import keyinput
+
+                keyinput.press_escape()
+            except Exception:  # noqa: BLE001
+                pass
+            log.warning("切会话降级：下拉里没有可定位的控件（不盲点）")
+            return False
+
         try:
-            if box is not None:
-                uia._set_text(box, "")  # noqa: SLF001
+            rect = item.BoundingRectangle
+            if rect.right <= rect.left or rect.bottom <= rect.top:
+                return False
+            x = (rect.left + rect.right) // 2
+            y = (rect.top + rect.bottom) // 2
+            user32 = ctypes.windll.user32
+            user32.SetCursorPos(int(x), int(y))
+            time.sleep(0.12)
+            user32.mouse_event(0x0002, 0, 0, 0, 0)
+            time.sleep(0.06)
+            user32.mouse_event(0x0004, 0, 0, 0, 0)
+            time.sleep(1.4)
+            log.info("已点击搜索结果：%s", chat)
+            return True
         except Exception:  # noqa: BLE001
-            pass
-        return False
+            log.debug("点击搜索结果失败", exc_info=True)
+            return False
 
     def _silent_send(self, chat: str, text: str) -> tuple[bool, str]:
         """Send without moving the mouse and without minimizing other windows.
@@ -803,6 +987,9 @@ class WechatautoAdapter(BaseAdapter):
         self._hide_viewer()
         if uia is None:
             return False, "UIA 未就绪"
+        ready, reason = self._ensure_chat_ui()
+        if not ready:
+            return False, reason
         user32 = ctypes.windll.user32
         pt = wt.POINT()
         user32.GetCursorPos(ctypes.byref(pt))
@@ -855,6 +1042,7 @@ class WechatautoAdapter(BaseAdapter):
             time.sleep(0.25)
             if not uia._read_edit_value(edit):  # noqa: SLF001
                 return False, "内容没进输入框"
+            self._submit_state = "submitted"   # 回车已按下：之后失败也不能重发
             edit.SendKeys("{ENTER}")
             time.sleep(0.6)
             return True, "已发送（静默模式：未移动鼠标）"
@@ -956,16 +1144,24 @@ class WechatautoAdapter(BaseAdapter):
         # 1) 静默模式（默认）：全程不移动鼠标、不最小化任何窗口，
         #    只在打字期间短暂把微信提到前台，发完立刻还原你原来的窗口。
         if self.silent:
+            self._submit_state = "none"
             ok, detail = self._silent_send(chat, text)
             if ok:
                 return {"ok": True, "detail": detail}
-            log.warning("静默发送未成功（%s），回退到点击式发送", detail)
+            # 已经按下回车但没确认 → 绝不再发一次（否则同一条会发两遍）
+            if self._submit_state == "submitted":
+                return {
+                    "ok": False,
+                    "unconfirmed": True,
+                    "detail": f"已投递未确认：{detail}",
+                }
+            log.warning("静默发送未成功（%s），改用一次 UIA 路径", detail)
 
         # 2) 回退：点击式 UIA 路径（会移动鼠标、抬升窗口）
         uia = self._uia
         if uia is not None:
             gui = getattr(self._wx, "_gui", None)
-            for attempt in range(2):
+            for attempt in range(1):
                 try:
                     if gui is not None:
                         try:
@@ -983,6 +1179,7 @@ class WechatautoAdapter(BaseAdapter):
                         current = None
                     log.info("发送诊断：当前会话=%r 目标=%r", current, chat)
                     if current == chat or uia.open_chat(chat):
+                        self._submit_state = "submitted"
                         sent = uia.send_text(text)
                         log.info("发送诊断：send_text=%s", sent)
                         if sent:
@@ -998,7 +1195,13 @@ class WechatautoAdapter(BaseAdapter):
                     gui.release_foreground()
             except Exception:  # noqa: BLE001
                 pass
-            log.warning("UIA 两轮都没成功，改用库的 SendMsg 兜底：%s", chat)
+            if self._submit_state == "submitted":
+                return {
+                    "ok": False,
+                    "unconfirmed": True,
+                    "detail": "已投递未确认（UIA 路径已提交一次，不再重发）",
+                }
+            log.warning("UIA 路径未能提交，尝试库的 SendMsg：%s", chat)
 
         # 2) 兜底：库封装的 SendMsg（内部可能走 OCR，缺 winsdk 时会失败）
         if self._wx is None:

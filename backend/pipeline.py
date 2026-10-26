@@ -117,7 +117,29 @@ class ReplyPipeline:
                 self._busy = False
 
     # ---------------------------------------------------------------- decision
+    def _coalesce(self, msg: IncomingMessage) -> IncomingMessage:
+        """把队列里同一会话的连发消息合并成一条，避免刷屏时逐条回。"""
+        extra: list[str] = []
+        while len(extra) < 6:
+            try:
+                nxt = self._queue.get_nowait()
+            except queue.Empty:
+                break
+            if nxt.chat == msg.chat and nxt.chat_type == msg.chat_type:
+                text = (nxt.content or "").strip()
+                if text and text not in extra:
+                    extra.append(text)
+            else:
+                self._queue.put(nxt)
+                break
+        if extra:
+            merged = "；".join([(msg.content or "").strip()] + extra)[:400]
+            log.info("合并了 %d 条连发消息：%s", len(extra), msg.chat)
+            msg.content = merged
+        return msg
+
     def _process(self, msg: IncomingMessage) -> None:
+        msg = self._coalesce(msg)
         cfg = self.runtime.config
         store = self.runtime.store
         store.add_message(
@@ -240,6 +262,7 @@ class ReplyPipeline:
         # 模型可能只发一个 [[表情]]：这种情况只发表情，不发空文本
         if text:
             ok, detail = self.runtime.adapter.send_text(msg.chat, text)
+            unconfirmed = (not ok) and ("已投递未确认" in str(detail))
             store.add_message(
                 chat=msg.chat,
                 chat_type=msg.chat_type,
@@ -247,9 +270,15 @@ class ReplyPipeline:
                 direction="out",
                 content=text,
                 rule=decision.rule_name,
-                status="ok" if ok else "failed",
+                status="unconfirmed" if unconfirmed else ("ok" if ok else "failed"),
                 note=detail,
             )
+            if unconfirmed:
+                self.runtime.notify(
+                    f"「{msg.chat}」这条可能已经发出但没确认，为避免重复不再重发",
+                    kind="error",
+                    level="warn",
+                )
         else:
             ok, detail = True, "（只发表情包，没有文字）"
         with self._lock:
@@ -307,7 +336,13 @@ class ReplyPipeline:
         with self._lock:
             last = self._last_reply.get(msg.chat, 0.0)
         if cooldown > 0 and now - last < cooldown:
-            return f"会话冷却中（{cooldown:.0f} 秒内只回一次）"
+            # 以前这里是"直接丢弃"，群聊一刷屏就整批不回。
+            # 改成等冷却结束再回（最多等 cooldown 秒），保证至少回一次。
+            wait = min(cooldown - (now - last), 5.0)
+            if wait > 0:
+                self._stop.wait(wait)
+            with self._lock:
+                self._last_reply[msg.chat] = 0.0
 
         limit = cfg.bot.global_per_minute
         with self._lock:

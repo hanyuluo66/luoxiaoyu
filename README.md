@@ -154,6 +154,27 @@ C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe `
 - [控制台规格](docs/web-console-spec.md) — 9 个页面的接口与字段
 - [人设提示词](docs/微信人设提示词.md) — 默认人设与调整建议
 - [项目周报](docs/周报-2026-10-25.md) — 本周进展、踩坑与下周计划
+- [技术路线评估](docs/技术路线评估-iLink与企业微信.md) — iLink Bot API / 企业微信 / 桌面自动化的取舍与核实结论
+
+---
+
+## 依赖与致谢
+
+本项目**不是 fork**，但站在这些开源工作的肩上：
+
+| 依赖 | 用途 | 许可 |
+|---|---|---|
+| [wechatauto-replica](https://pypi.org/project/wechatauto-replica/) | 微信 4.x 数据库解密、UIA 驱动、控件树热激活 | 遵循其原始许可 |
+| [uiautomation](https://github.com/yinkaisheng/Python-UIAutomation-for-Windows) | Windows UI Automation 封装 | MIT |
+| [pywebview](https://pywebview.flowrl.com/) / WebView2 | 控制台独立窗口 | BSD-3-Clause |
+| [imageio-ffmpeg](https://github.com/imageio/imageio-ffmpeg) | 内置静态 ffmpeg（微信图片转码） | BSD-2-Clause |
+| [FastAPI](https://fastapi.tiangolo.com/) / [uvicorn](https://www.uvicorn.org/) | 本地控制台后端 | MIT / BSD |
+| [pystray](https://github.com/moses-palmer/pystray) / [Pillow](https://python-pillow.org/) | 系统托盘与图标 | LGPLv3 / HPND |
+
+本项目的许可见 [LICENSE](LICENSE)（MIT）。上游依赖的版权与许可归各自作者所有。
+
+**上游对比基线**：依赖版本锁定在 `requirements.txt`；`wechatauto-replica==1.2.7.0` 是本项目验证通过的版本。
+若上游升级导致行为变化，会在 [PROJECT.md](PROJECT.md) 记录。
 
 ---
 
